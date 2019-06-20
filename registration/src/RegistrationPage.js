@@ -22,7 +22,7 @@ const EntryList = ({ list, deleteEntry, editEntry }) => (
         {list.map(e => (
           <tr key={e.id}>
             <td>{`${e.firstName} ${e.lastName}`}</td>
-            <td>{e.npi}</td>
+            <td><a target="blank" href={`https://npiregistry.cms.hhs.gov/registry/search-results-table?number=${e.npi}&addressType=ANY`}>{e.npi}</a></td>
             <td>{`${e.city}, ${e.state}`}</td>
             <td>
               <Button color="primary" onClick={() => editEntry(e)}>&#9998;</Button>
@@ -60,6 +60,11 @@ class RegistrationPage extends React.Component {
   }
 
   addEntry(entry) {
+    /*
+      This bit is a little hokey.
+      I'm re-assigning all entries a new Id every time
+      so I don't end up with conflicts.  Not really realistic.
+    */
     this.setState({
       list: [
         ...this.state.list.map((e, i) => ({...e, id: i})),

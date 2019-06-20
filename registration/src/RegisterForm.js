@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Formik, Field } from 'formik';
 import * as Yup from 'yup';
 import {
@@ -13,7 +13,9 @@ import {
   CardFooter,
   Button,
   Form,
-  FormText
+  FormText,
+  InputGroup,
+  InputGroupAddon
 } from 'reactstrap';
 
 const luhnCheck = (input) => {
@@ -76,7 +78,7 @@ const FormSchema = Yup.object().shape({
   zip: Yup.string()
     .label('Zip Code')
     .max(10)
-    .matches(/\d{5}(-\d{4})?/)
+    .matches(/\d{5}(\d{4})?/)
     .required(),
   phone: Yup.string()
     .label('Phone Number')
@@ -101,6 +103,70 @@ const InputField = ({
       <FormText color="danger">{touched[field.name] && errors[field.name]}</FormText>
     </FormGroup>
   );
+
+class NpiInputBox extends React.Component {
+  constructor(){
+    super();
+    this.state = {
+      searching: false,
+    };
+  }
+
+  getAddressFromNpi(npi, setValues, values) {
+    // for this to work, run `node server.js` at the root of this project
+    this.setState({
+      searching: true,
+    });
+    fetch(`http://localhost:3001/npi/${npi}`)
+      .then(resp => {
+        resp.json().then(data => {
+          if (data.result_count === 1) {
+            const address = data.results[0].addresses
+              .filter(a => a.address_purpose === "LOCATION")[0];
+            setValues({
+              ...values,
+              address1: address.address_1,
+              address2: address.address_2,
+              city: address.city,
+              state: address.state,
+              zip: address.postal_code.substring(0, 5),
+              phone: address.telephone_number.replace(/-/gi, ''),
+            });
+            this.setState({
+              searching: false,
+            });
+          }
+        })
+      }).catch(() => {
+        this.setState({
+          searching: true,
+        });
+      });
+  }
+
+  render() {
+    const {
+      field,
+      form: { touched, errors, values, setValues },
+      ...props
+    } = this.props;
+    return (
+      <InputGroup>
+        <Label for={field.id}>{field.label}</Label>
+        <span className="w-100"></span>
+        <Input {...field} {...props} />
+        <InputGroupAddon addonType="append">
+          <Button color="primary" disabled={this.state.searching}
+            onClick={e => this.getAddressFromNpi(values.npi, setValues, values)}>
+            {this.state.searching ? "Searching..." : "Search"}
+          </Button>
+        </InputGroupAddon>
+        <span className="w-100"></span>
+        <FormText color="danger">{touched[field.name] && errors[field.name]}</FormText>
+      </InputGroup>
+    );
+  }
+}
 
 const initialValues = {
   id: 0,
@@ -158,7 +224,7 @@ class RegisterForm extends React.Component {
                   </Row>
                   <Row form>
                     <Col md={12}>
-                      <Field component={InputField} type="text" id="npi" name="npi" label="NPI Number" />
+                      <Field component={NpiInputBox} type="text" id="npi" name="npi" label="NPI Number" />
                     </Col>
                   </Row>
                   <Row form>
