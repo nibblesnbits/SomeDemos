@@ -1,4 +1,12 @@
 
+/*
+    So I feel like I'm seriously oversimplifying this, but
+    as far as I can tell this is technically correct.
+    Also, I'm sure there are much more elegant ways of doing this.
+    
+    I'd love to have the time to flesh it out enough to let you
+    know where it expects closing parens, but my time is limited.
+*/
 
 // O(n)
 function naiveValidate(input) {
