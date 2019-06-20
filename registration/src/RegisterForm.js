@@ -15,7 +15,11 @@ import {
   Form,
   FormText,
   InputGroup,
-  InputGroupAddon
+  InputGroupAddon,
+  Modal,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
 } from 'reactstrap';
 import states from './states';
 
@@ -105,15 +109,41 @@ const InputField = ({
     </FormGroup>
   );
 
+const AddressModal = ({ addresses, selectAddress, close }) => {
+  return (
+    <Modal isOpen={true}>
+      <ModalHeader>Choose Address</ModalHeader>
+      <ModalBody>
+        <ul>
+        {addresses.map((a, i) => (
+          <li key={i}>
+            <Button color="link" onClick={() => selectAddress(a)}>
+              {`${a.address_1} ${a.city}, ${a.state} ${a.postal_code}`}
+            </Button>
+          </li>
+        ))}
+        </ul>
+      </ModalBody>
+      <ModalFooter>
+        <Button color="secondary" onClick={close}>Cancel</Button>
+      </ModalFooter>
+    </Modal>
+  );
+}
+
 class NpiInputBox extends React.Component {
   constructor(){
     super();
     this.state = {
       searching: false,
+      addressList: [],
     };
+    this.getAddressFromNpi = this.getAddressFromNpi.bind(this);
+    this.selectAddress = this.selectAddress.bind(this);
+    this.closeModal = this.closeModal.bind(this);
   }
 
-  getAddressFromNpi(npi, setValues, values) {
+  getAddressFromNpi(npi) {
     // for this to work, run `node server.js` at the root of this project
     this.setState({
       searching: true,
@@ -121,28 +151,41 @@ class NpiInputBox extends React.Component {
     fetch(`http://localhost:3001/npi/${npi}`)
       .then(resp => {
         resp.json().then(data => {
-          if (data.result_count === 1) {
-            const address = data.results[0].addresses
-              .filter(a => a.address_purpose === "LOCATION")[0];
-            setValues({
-              ...values,
-              address1: address.address_1,
-              address2: address.address_2,
-              city: address.city,
-              state: address.state,
-              zip: address.postal_code.substring(0, 5),
-              phone: address.telephone_number.replace(/-/gi, ''),
-            });
             this.setState({
               searching: false,
+              addressList: data.results[0].addresses,
             });
-          }
-        })
+        });
       }).catch(() => {
         this.setState({
-          searching: true,
+          searching: false,
+          addressList: [],
         });
       });
+  }
+
+  selectAddress(setValues, values) {
+    return (address) => {
+      setValues({
+        ...values,
+        address1: address.address_1,
+        address2: address.address_2,
+        city: address.city,
+        state: address.state,
+        zip: address.postal_code.substring(0, 5),
+        phone: address.telephone_number.replace(/-/gi, ''),
+      });
+      this.setState({
+        searching: false,
+        addressList: [],
+      });
+    };
+  }
+
+  closeModal() {
+    this.setState({
+      addressList: [],
+    });
   }
 
   render() {
@@ -152,19 +195,27 @@ class NpiInputBox extends React.Component {
       ...props
     } = this.props;
     return (
-      <InputGroup>
-        <Label for={field.id}>{field.label}</Label>
-        <span className="w-100"></span>
-        <Input {...field} {...props} />
-        <InputGroupAddon addonType="append">
-          <Button color="primary" disabled={this.state.searching}
-            onClick={e => this.getAddressFromNpi(values.npi, setValues, values)}>
-            {this.state.searching ? "Searching..." : "Search"}
-          </Button>
-        </InputGroupAddon>
-        <span className="w-100"></span>
-        <FormText color="danger">{touched[field.name] && errors[field.name]}</FormText>
-      </InputGroup>
+      <React.Fragment>
+        <InputGroup>
+          <Label for={field.id}>{field.label}</Label>
+          <span className="w-100"></span>
+          <Input {...field} {...props} />
+          <InputGroupAddon addonType="append">
+            <Button color="primary" disabled={this.state.searching}
+              onClick={() => this.getAddressFromNpi(values.npi, setValues, values)}>
+              {this.state.searching ? "Searching..." : "Search"}
+            </Button>
+          </InputGroupAddon>
+          <span className="w-100"></span>
+          <FormText color="danger">{touched[field.name] && errors[field.name]}</FormText>
+        </InputGroup>
+        {this.state.addressList.length > 0 &&
+         <AddressModal
+            addresses={this.state.addressList}
+            selectAddress={this.selectAddress(setValues, values)}
+            close={this.closeModal}/>
+        }
+      </React.Fragment>
     );
   }
 }
