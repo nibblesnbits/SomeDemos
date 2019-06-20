@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Formik, Field } from 'formik';
 import * as Yup from 'yup';
 import {
@@ -17,6 +17,7 @@ import {
   InputGroup,
   InputGroupAddon
 } from 'reactstrap';
+import states from './states';
 
 const luhnCheck = (input) => {
   const [checkDigit, ...sumDigits] = input.split('').reverse().map(d => Number(d));
@@ -73,7 +74,7 @@ const FormSchema = Yup.object().shape({
     .required(),
   state: Yup.string()
     .label('State')
-    .max(50)
+    .max(2)
     .required(),
   zip: Yup.string()
     .label('Zip Code')
@@ -242,7 +243,9 @@ class RegisterForm extends React.Component {
                       <Field component={InputField} type="text" id="city" name="city" label="City" />
                     </Col>
                     <Col md={4}>
-                      <Field component={InputField} type="text" id="state" name="state" label="State" />
+                      <Field component={InputField} type="select" id="state" name="state" label="State">
+                        {Object.entries(states).map(e => (<option key={e[1]} value={e[1]}>{e[0]}</option>))}
+                      </Field>
                     </Col>
                     <Col md={4}>
                       <Field component={InputField} type="text" id="zip" name="zip" label="Zip Code" />
