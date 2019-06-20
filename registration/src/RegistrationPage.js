@@ -3,6 +3,8 @@ import RegisterForm from './RegisterForm';
 import {
   Button,
   Table,
+  Row,
+  Col
 } from 'reactstrap';
 
 
@@ -22,7 +24,7 @@ const EntryList = ({ list, deleteEntry, editEntry }) => (
         {list.map(e => (
           <tr key={e.id}>
             <td>{`${e.firstName} ${e.lastName}`}</td>
-            <td><a target="blank" href={`https://npiregistry.cms.hhs.gov/registry/search-results-table?number=${e.npi}&addressType=ANY`}>{e.npi}</a></td>
+            <td><a target="blank" href={`https://npiregistry.cms.hhs.gov/registry/provider-view/${e.npi}`}>{e.npi}</a></td>
             <td>{`${e.city}, ${e.state}`}</td>
             <td>
               <Button color="primary" onClick={() => editEntry(e)}>&#9998;</Button>
@@ -67,7 +69,7 @@ class RegistrationPage extends React.Component {
     */
     this.setState({
       list: [
-        ...this.state.list.map((e, i) => ({...e, id: i})),
+        ...this.state.list.map((e, i) => ({ ...e, id: i })),
         { ...entry, id: this.state.list.length + 1 }
       ],
       editEntry: undefined,
@@ -76,12 +78,10 @@ class RegistrationPage extends React.Component {
 
   render() {
     return (
-      <div>
-        <RegisterForm addEntry={this.addEntry} entry={this.state.editEntry} />
-        {this.state.list.length > 0 &&
-          <EntryList list={this.state.list} deleteEntry={this.delete} editEntry={this.edit} />
-        }
-      </div>
+      <Row>
+        <Col md={6}><RegisterForm addEntry={this.addEntry} entry={this.state.editEntry} /></Col>
+        <Col md={6}><EntryList list={this.state.list} deleteEntry={this.delete} editEntry={this.edit} /></Col>
+      </Row>
     )
   }
 }

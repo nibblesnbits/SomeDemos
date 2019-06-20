@@ -109,19 +109,26 @@ const InputField = ({
     </FormGroup>
   );
 
-const AddressModal = ({ addresses, selectAddress, close }) => {
+const AddressModal = ({ orgs, selectAddress, close }) => {
   return (
     <Modal isOpen={true}>
       <ModalHeader>Choose Address</ModalHeader>
       <ModalBody>
         <ul>
-        {addresses.map((a, i) => (
-          <li key={i}>
-            <Button color="link" onClick={() => selectAddress(a)}>
-              {`${a.address_1} ${a.city}, ${a.state} ${a.postal_code}`}
-            </Button>
-          </li>
-        ))}
+          {orgs.map(o => (
+            <li key={o.number}>
+              <h4>{o.basic.name}</h4>
+              <ul>
+                {o.addresses.map((a, i) => (
+                  <li key={i}>
+                    <Button color="link" onClick={() => selectAddress(a)}>
+                      {`${a.address_1} ${a.city}, ${a.state} ${a.postal_code}`}
+                    </Button>
+                  </li>
+                ))}
+              </ul>
+            </li>
+          ))}
         </ul>
       </ModalBody>
       <ModalFooter>
@@ -132,11 +139,11 @@ const AddressModal = ({ addresses, selectAddress, close }) => {
 }
 
 class NpiInputBox extends React.Component {
-  constructor(){
+  constructor() {
     super();
     this.state = {
       searching: false,
-      addressList: [],
+      orgList: [],
     };
     this.getAddressFromNpi = this.getAddressFromNpi.bind(this);
     this.selectAddress = this.selectAddress.bind(this);
@@ -151,15 +158,16 @@ class NpiInputBox extends React.Component {
     fetch(`http://localhost:3001/npi/${npi}`)
       .then(resp => {
         resp.json().then(data => {
-            this.setState({
-              searching: false,
-              addressList: data.results[0].addresses,
-            });
+          debugger;
+          this.setState({
+            searching: false,
+            orgList: data.results,
+          });
         });
       }).catch(() => {
         this.setState({
           searching: false,
-          addressList: [],
+          orgList: [],
         });
       });
   }
@@ -177,14 +185,14 @@ class NpiInputBox extends React.Component {
       });
       this.setState({
         searching: false,
-        addressList: [],
+        orgList: [],
       });
     };
   }
 
   closeModal() {
     this.setState({
-      addressList: [],
+      orgList: [],
     });
   }
 
@@ -197,11 +205,11 @@ class NpiInputBox extends React.Component {
     return (
       <React.Fragment>
         <InputGroup>
-          <Label for={field.id}>{field.label}</Label>
+          <Label for={props.id}>{props.label}</Label>
           <span className="w-100"></span>
           <Input {...field} {...props} />
           <InputGroupAddon addonType="append">
-            <Button color="primary" disabled={this.state.searching}
+            <Button color="primary" disabled={this.state.searching || !!errors[field.name]}
               onClick={() => this.getAddressFromNpi(values.npi, setValues, values)}>
               {this.state.searching ? "Searching..." : "Search"}
             </Button>
@@ -209,11 +217,11 @@ class NpiInputBox extends React.Component {
           <span className="w-100"></span>
           <FormText color="danger">{touched[field.name] && errors[field.name]}</FormText>
         </InputGroup>
-        {this.state.addressList.length > 0 &&
-         <AddressModal
-            addresses={this.state.addressList}
+        {this.state.orgList.length > 0 &&
+          <AddressModal
+            orgs={this.state.orgList}
             selectAddress={this.selectAddress(setValues, values)}
-            close={this.closeModal}/>
+            close={this.closeModal} />
         }
       </React.Fragment>
     );
@@ -295,6 +303,7 @@ class RegisterForm extends React.Component {
                     </Col>
                     <Col md={4}>
                       <Field component={InputField} type="select" id="state" name="state" label="State">
+                        <option value="">Select One</option>
                         {Object.entries(states).map(e => (<option key={e[1]} value={e[1]}>{e[0]}</option>))}
                       </Field>
                     </Col>
