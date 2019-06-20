@@ -63,8 +63,9 @@ class RegistrationPage extends React.Component {
     this.setState({
       list: [
         ...this.state.list.map((e, i) => ({...e, id: i})),
-        { ...entry, id: entry.id || this.state.list.length + 1 }
+        { ...entry, id: this.state.list.length + 1 }
       ],
+      editEntry: undefined,
     });
   }
 

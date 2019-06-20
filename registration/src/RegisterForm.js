@@ -98,7 +98,7 @@ const InputField = ({
     <FormGroup>
       <Label for={field.id}>{props.label}</Label>
       <Input {...field} {...props} />
-      <FormText color="danger">{touched && errors && errors[field.name]}</FormText>
+      <FormText color="danger">{touched[field.name] && errors[field.name]}</FormText>
     </FormGroup>
   );
 
