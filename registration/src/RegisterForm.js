@@ -74,7 +74,7 @@ const FormSchema = Yup.object().shape({
     .max(50)
     .required(),
   zip: Yup.string()
-    .label('First Name')
+    .label('Zip Code')
     .max(10)
     .matches(/\d{5}(-\d{4})?/)
     .required(),
@@ -103,6 +103,7 @@ const InputField = ({
   );
 
 const initialValues = {
+  id: 0,
   firstName: '',
   lastName: '',
   npi: '1043328156',
@@ -128,14 +129,17 @@ class RegisterForm extends React.Component {
   }
 
   render() {
+    const { entry } = this.props;
     return (
       <Formik
+        enableReinitialize
         validationSchema={FormSchema}
-        initialValues={initialValues}
+        initialValues={entry || initialValues}
         onSubmit={this.submit}>
         {({
           handleSubmit,
-          isSubmitting
+          isSubmitting,
+          resetForm
         }) => (
             <Form onSubmit={handleSubmit}>
               <Card>
@@ -144,6 +148,7 @@ class RegisterForm extends React.Component {
                 </CardHeader>
                 <CardBody>
                   <Row form>
+                    <Field id="id" name="id" type="hidden" />
                     <Col md={6}>
                       <Field component={InputField} type="text" id="firstName" name="firstName" label="First Name" />
                     </Col>
@@ -187,7 +192,12 @@ class RegisterForm extends React.Component {
                   </Row>
                 </CardBody>
                 <CardFooter>
-                  <Button type="submit" color="primary" disabled={isSubmitting}>Submit</Button>
+                  <Button type="submit" color="primary" disabled={isSubmitting}>
+                    {entry ? "Save" : "Submit"}
+                  </Button>
+                  <Button color="secondary" disabled={isSubmitting} onClick={() => resetForm(initialValues)}>
+                    {entry ? "Cancel" : "Clear"}
+                  </Button>
                 </CardFooter>
               </Card>
             </Form>

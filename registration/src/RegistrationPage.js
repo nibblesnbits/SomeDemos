@@ -6,7 +6,7 @@ import {
 } from 'reactstrap';
 
 
-const EntryList = ({ list, deleteEntry }) => (
+const EntryList = ({ list, deleteEntry, editEntry }) => (
   <div>
     <h3>Entry List</h3>
     <Table>
@@ -24,7 +24,10 @@ const EntryList = ({ list, deleteEntry }) => (
             <td>{`${e.firstName} ${e.lastName}`}</td>
             <td>{e.npi}</td>
             <td>{`${e.city}, ${e.state}`}</td>
-            <td><Button color="danger" onClick={() => deleteEntry(e.id)}>&times;</Button></td>
+            <td>
+              <Button color="primary" onClick={() => editEntry(e)}>&#9998;</Button>
+              <Button color="danger" onClick={() => deleteEntry(e.id)}>&times;</Button>
+            </td>
           </tr>
         ))}
       </tbody>
@@ -36,6 +39,7 @@ class RegistrationPage extends React.Component {
   constructor() {
     super();
     this.delete = this.delete.bind(this);
+    this.edit = this.edit.bind(this);
     this.addEntry = this.addEntry.bind(this);
     this.state = {
       list: [],
@@ -48,21 +52,28 @@ class RegistrationPage extends React.Component {
     });
   }
 
+  edit(entry) {
+    this.setState({
+      list: [...this.state.list.filter(i => i.id !== entry.id)],
+      editEntry: entry,
+    });
+  }
+
   addEntry(entry) {
     this.setState({
       list: [
         ...this.state.list.map((e, i) => ({...e, id: i})),
-        { ...entry, id: this.state.list.length + 1 }
-      ]
+        { ...entry, id: entry.id || this.state.list.length + 1 }
+      ],
     });
   }
 
   render() {
     return (
       <div>
-        <RegisterForm addEntry={this.addEntry}/>
+        <RegisterForm addEntry={this.addEntry} entry={this.state.editEntry} />
         {this.state.list.length > 0 &&
-          <EntryList list={this.state.list} deleteEntry={this.delete} />
+          <EntryList list={this.state.list} deleteEntry={this.delete} editEntry={this.edit} />
         }
       </div>
     )
